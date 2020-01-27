@@ -1,0 +1,58 @@
+---EJERCICIO 19 listooo
+SELECT username, likes, dislikes, diferencia
+FROM usuario 
+FULL JOIN
+	(
+	SELECT ul.id_user, likes, dislikes, likes-dislikes As diferencia
+	FROM
+		(
+		SELECT pl.id_user, (lp+lc) AS likes
+		FROM
+			(---CUENTA LOS LIKES POSITIVOS DE PUBLICACION 
+			SELECT p.id_user, count(positivo) AS lp
+			FROM like_publicacion AS lp
+			JOIN publicacion AS p
+			ON lp.id_public=p.id_public
+			WHERE positivo=true
+			GROUP BY p.id_user
+			) AS pl
+		FULL JOIN
+			(----CUENTA LOOS COMENTARIOS LIKE DE CADA USUARIO 
+			SELECT c.id_user, count(positivo) AS lc
+			FROM like_comentario AS lc
+			JOIN comentario AS c
+			ON lc.id_coment=c.id_coment
+			WHERE positivo=true
+			GROUP BY c.id_user
+			) AS cl
+		ON pl.id_user=cl.id_user
+		) AS ul
+	FULL JOIN
+		(------LA CANTIDAD DE DISLIKES DE CADA USUARIO
+		SELECT pd.id_user, (dp+dc) AS dislikes
+		FROM	
+			(			--CUENTA LOS DISLIKES DE UNA PUBLICACION	
+			SELECT p.id_user, count(positivo) AS dp
+			FROM like_publicacion AS lp
+			JOIN publicacion AS p
+			ON lp.id_public=p.id_public
+			WHERE positivo=false
+			GROUP BY p.id_user
+			) AS pd
+		FULL JOIN
+			( 			---CUENTA LOS COMENTARIOS DISLIKES
+			SELECT c.id_user, count(positivo) AS dc
+			FROM like_comentario AS lc
+			JOIN comentario AS c
+			ON lc.id_coment=c.id_coment
+			WHERE positivo=false
+			GROUP BY c.id_user
+			) AS cd
+		ON pd.id_user=cd.id_user
+		) AS ud
+	ON ul.id_user=ud.id_user
+	) AS uld
+ON id=id_user
+ORDER BY diferencia ASC	
+;
+
